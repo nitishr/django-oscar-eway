@@ -26,7 +26,7 @@ class RapidResponseView(PaymentDetailsView):
 
     def get(self, request, *args, **kwargs):
         self.access_code = request.GET.get('AccessCode', None)
-        return self.submit(request.basket)
+        return self.submit(**self.build_submission())
 
     def get_bankcard_details(self):
         kwargs = self.checkout_session._get('bankcard', 'bankcard_fields')
@@ -61,7 +61,7 @@ class RapidResponseView(PaymentDetailsView):
         else:
             BankcardModel.objects.filter(pk=bankcard.id).update(**kwargs)
 
-    def handle_payment(self, order_number, total_incl_tax, **kwargs):
+    def handle_payment(self, order_number, total, **kwargs):
         response = self.facade.get_access_code_result(self.access_code)
 
         if not response.transaction_status:
@@ -90,14 +90,14 @@ class RapidResponseView(PaymentDetailsView):
         source = Source(
             source_type=source_type,
             currency=settings.EWAY_CURRENCY,
-            amount_allocated=total_incl_tax,
-            amount_debited=total_incl_tax,
+            amount_allocated=total.incl_tax,
+            amount_debited=total.incl_tax,
             reference=response.transaction_id
         )
         self.add_payment_source(source)
 
         # Also record payment event
-        self.add_payment_event(PURCHASE, total_incl_tax)
+        self.add_payment_event(PURCHASE, total.incl_tax)
 
     def render_to_response(self, context, **response_kwargs):
         if 'error' in context:

@@ -6,10 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from oscar.core.loading import get_class
 from oscar.apps.payment import forms as payment_forms
-from oscar.apps.payment.forms import bankcard_type
+from oscar.apps.payment.bankcards import bankcard_type
 
 BankcardModel = get_model('payment', 'Bankcard')
-Bankcard = get_class('payment.utils', 'Bankcard')
 
 
 def expiry_month_choices():
@@ -49,7 +48,7 @@ def start_year_choices(num_years=5):
     list is '--' to allow for not selecting a year.
     """
     years = [("", _("--"))]
-    for year in xrange(date.today().year-num_years, date.today().year+1):
+    for year in xrange(date.today().year - num_years, date.today().year + 1):
         years.append((year, year))
     return years
 
@@ -81,7 +80,7 @@ class BankcardForm(forms.Form):
     EWAY_CARDNUMBER = payment_forms.BankcardNumberField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'autocomplete':'off'}),
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}),
         label=_("Card number")
     )
     EWAY_CARDCVN = forms.RegexField(
@@ -185,7 +184,7 @@ class BankcardForm(forms.Form):
             'card_type': bankcard_type(card_number),
             'name': self.data['EWAY_CARDNAME'],
             'number': self.get_obfuscated_card_number(card_number),
-            'expiry_date': "%s/%s" %(
+            'expiry_date': "%s/%s" % (
                 self.data['EWAY_CARDEXPIRYMONTH'],
                 self.data['EWAY_CARDEXPIRYYEAR'],
             ),
@@ -220,7 +219,7 @@ class BankcardForm(forms.Form):
         kwargs = {
             'name': self.cleaned_data['EWAY_CARDNAME'],
             'card_number': self.cleaned_data['EWAY_CARDNUMBER'],
-            'expiry_date': "%s/%s" %(
+            'expiry_date': "%s/%s" % (
                 self.cleaned_data['EWAY_CARDEXPIRYMONTH'],
                 self.cleaned_data['EWAY_CARDEXPIRYYEAR'],
             ),
@@ -232,4 +231,4 @@ class BankcardForm(forms.Form):
                 self.cleaned_data['EWAY_CARDSTARTMONTH'],
                 self.cleaned_data['EWAY_CARDSTARTMONTH'],
             )
-        return Bankcard(**kwargs)
+        return kwargs

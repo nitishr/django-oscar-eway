@@ -77,14 +77,14 @@ class EwayPaymentDetailMixin(object):
 
     def get_eway_access_code(self, basket):
         order_number = self.generate_order_number(basket)
-        total_incl_tax, total_excl_tax = self.get_order_totals(basket)
+        total = self.get_order_totals(basket, self.get_shipping_method(basket))
 
         try:
             billing_address = self.get_billing_address()
         except AttributeError:
             billing_address = self.get_default_billing_address()
 
-        shipping_address = self.get_shipping_address()
+        shipping_address = self.get_shipping_address(basket)
         billing_address = billing_address or shipping_address
 
         redirect_url = "http://%s%s" % (
@@ -94,7 +94,7 @@ class EwayPaymentDetailMixin(object):
 
         response = self.facade.token_payment(
             order_number,
-            total_incl_tax,
+            total.incl_tax,
             redirect_url=redirect_url,
             #token_customer_id=token_customer_id,
             billing_address=billing_address,
